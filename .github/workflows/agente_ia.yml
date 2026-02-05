@@ -1,0 +1,66 @@
+name: AI Agent on Issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install openai
+
+      - name: Parse issue body
+        id: parse
+        run: |
+          BODY="${{ github.event.issue.body }}"
+
+          STACK=$(echo "$BODY" | grep -i "^Stack:" | cut -d':' -f2- | xargs)
+          HISTORIA=$(echo "$BODY" | grep -i "^Historia:" | cut -d':' -f2- | xargs)
+
+          echo "stack=$STACK" >> $GITHUB_OUTPUT
+          echo "historia=$HISTORIA" >> $GITHUB_OUTPUT
+
+      - name: Run AI agent
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPEN_API_KEY }}
+        run: |
+          python agente_ia.py \
+            "${{ steps.parse.outputs.stack }}" \
+            "${{ steps.parse.outputs.historia }}"
+
+      - name: Commit & push changes
+        run: |
+          git config user.name "ai-agent"
+          git config user.email "ai-agent@github.com"
+          git add .
+          git commit -m "AI: código generado para issue #${{ github.event.issue.number }}"
+          git push
+
+      - name: Comment on issue with generated files
+        run: |
+          echo "### 🤖 Archivos generados automáticamente" > comment.txt
+          echo "" >> comment.txt
+
+          while read file; do
+            echo "- \`$file\`" >> comment.txt
+          done < generated_files.txt
+
+          gh issue comment ${{ github.event.issue.number }} \
+            --body-file comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
