@@ -3,33 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <title>Calculadora de Crédito</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        input { margin: 5px; }
-    </style>
 </head>
 <body>
-    <h1>Calculadora de Crédito</h1>
-    <label for="monto">Monto del Crédito:</label>
-    <input type="number" id="monto" placeholder="Monto" required>
-    <br>
-    <label for="tasa">Tasa de Interés (%):</label>
-    <input type="number" id="tasa" placeholder="Tasa" required>
-    <br>
-    <label for="años">Años:</label>
-    <input type="number" id="años" placeholder="Años" required>
-    <br>
-    <button onclick="calcularCredito()">Calcular</button>
-    <h2 id="resultado"></h2>
+    <div class="container mt-5">
+        <h1>Calculadora de Crédito</h1>
+        <form id="creditForm">
+            <div class="form-group">
+                <label for="amount">Monto del Crédito</label>
+                <input type="number" class="form-control" id="amount" required>
+            </div>
+            <div class="form-group">
+                <label for="interest">Tasa de Interés (%)</label>
+                <input type="number" class="form-control" id="interest" required>
+            </div>
+            <div class="form-group">
+                <label for="years">Años</label>
+                <input type="number" class="form-control" id="years" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Calcular</button>
+        </form>
+        <h2 class="mt-4">Pago Mensual: <span id="monthlyPayment"></span></h2>
+    </div>
     <script>
-        function calcularCredito() {
-            const monto = parseFloat(document.getElementById('monto').value);
-            const tasa = parseFloat(document.getElementById('tasa').value) / 100 / 12;
-            const años = parseFloat(document.getElementById('años').value) * 12;
-            const pagoMensual = (monto * tasa) / (1 - Math.pow(1 + tasa, -años));
-            document.getElementById('resultado').innerText = `Pago Mensual: $${pagoMensual.toFixed(2)}`;
-        }
+        document.getElementById('creditForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const interest = parseFloat(document.getElementById('interest').value) / 100 / 12;
+            const years = parseFloat(document.getElementById('years').value) * 12;
+            const x = Math.pow(1 + interest, years);
+            const monthly = (amount * x * interest) / (x - 1);
+            document.getElementById('monthlyPayment').innerText = monthly.toFixed(2);
+        });
     </script>
 </body>
 </html>
